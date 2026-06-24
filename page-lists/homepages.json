@@ -1,0 +1,16 @@
+[
+  { "site": "accelerator", "path": "/courses" },
+  { "site": "commencement", "path": "/" },
+  { "site": "getstarted", "path": "/online-mba" },
+  { "site": "global-trade-summit", "path": "/" },
+  { "site": "healthsummit", "path": "/" },
+  { "site": "info", "path": "/" },
+  { "site": "is", "path": "/" },
+  { "site": "library", "path": "/" },
+  { "site": "my", "path": "/" },
+  { "site": "news", "path": "/" },
+  { "site": "policies", "path": "/" },
+  { "site": "vision2030", "path": "/" },
+  { "site": "www", "path": "/" },
+  { "site": "wsummit", "path": "/" }
+]
