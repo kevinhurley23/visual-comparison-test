@@ -1,4 +1,5 @@
 [
-  { "site": "accelerator", "path": "/courses" },
-  { "site": "commencement", "path": "/" }
+  { "label": "Accelerator Certificate Finder", "site": "accelerator", "path": "/courses" },
+  { "site": "commencement", "path": "/" },
+  { "site": "is", "path": "/services/administrative-and-business/accessibility-services" }
 ]

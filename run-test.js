@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 // Process arguments
 const options = {
   env: { type: 'string', default: 'dev' },
-  pagelist: { type: 'string', default: 'test' },
+  pagelist: { type: 'string', default: 'all' },
 };
 const { values: args } = parseArgs({ options, strict: false });
 const env = args.env;
@@ -30,6 +30,8 @@ fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 
 
 (async () => {
+  const startTime = performance.now();
+
   // Import URLs from json file
   const module = await import(`./page-lists/${pageList}.json`, {
     with: { type: 'json' }
@@ -39,12 +41,13 @@ fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
   // Prepare pages array
   const pages = [];
   for (const url of urls) {
-    const safePath = url.path === '/' ? 'home': url.path.substring(1).replaceAll('/', '_');
-    const label = url.label || url.site + '_' + safePath;
+    let safePath = url.path === '/' ? 'home': url.path.substring(1, 40).replace(/[^a-zA-Z0-9-_\.]/g, '_');
+    safePath = `${url.site}_${safePath}`;
+    const label = url.label || safePath;
 
     pages.push({ 
       label: label,
-      filename: `${label.replaceAll(' ', '-')}.png`,
+      filename: `${safePath}.png`,
       prodURL: `https://${url.site}.bryant.edu${url.path}`,
       testURL: `https://${url.site}${env}.bryant.edu${url.path}`,
       viewports: [] 
@@ -70,17 +73,22 @@ fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
     // Helper functions
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     async function takeScreenshot(url, screenshotPath) {
-      console.log(`📸 Capturing: ${url}`);
-      await tab.goto(url);
-      // Inject testing styles after page loads
-      await tab.addStyleTag({ path: './testing-styles.css' });
-      await delay(500);
-      const height = await tab.evaluate(() => document.body.scrollHeight);
-      await tab.evaluate(async () => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-      await delay(Math.max(height / 6, 500));
-      await tab.screenshot({ path: screenshotPath, fullPage: true });
+      try {
+        console.log(`📸 Capturing: ${url}`);
+        await tab.goto(url);
+        // Inject testing styles after page loads
+        await tab.addStyleTag({ path: './testing-styles.css' });
+        await delay(500);
+        const height = await tab.evaluate(() => document.body.scrollHeight);
+        await tab.evaluate(async () => {
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+        await delay(Math.max(height / 4, 2000));
+        await tab.screenshot({ path: screenshotPath, fullPage: true });
+      } catch (error) {
+        console.error(error);
+        console.dir(error);
+      }
     }
 
     for (const page of pages) {
@@ -152,10 +160,14 @@ fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
     page.allViewportsPassed = viewportFailCount === 0;
   }
 
+  const endTime = performance.now();
+  const duration = endTime - startTime;
+
   const report = {
     date: new Date().toLocaleString(),
     env: env,
     pageList: pageList,
+    executionTime: duration.toFixed(),
     pages: pages
   }
   fs.writeFileSync('./test-report.json', JSON.stringify(report, null, 2));
